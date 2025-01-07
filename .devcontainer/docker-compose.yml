@@ -6,19 +6,17 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
-      - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
+      - --skip-innodb-read-only-compressed
     environment:
       MYSQL_ROOT_PASSWORD: 123
+      MYSQL_ROOT_HOST: '%'  # Allow connections from any host
     volumes:
       - mariadb-data:/var/lib/mysql
-
-  # Enable PostgreSQL only if you use it, see development/README.md for more information.
-  # postgresql:
-  #   image: postgres:11.8
-  #   environment:
-  #     POSTGRES_PASSWORD: 123
-  #   volumes:
-  #     - postgresql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis-cache:
     image: redis:alpine
@@ -40,6 +38,9 @@ services:
     ports:
       - 8000-8005:8000-8005
       - 9000-9005:9000-9005
+    depends_on:
+      mariadb:
+        condition: service_healthy
 
 volumes:
   mariadb-data:

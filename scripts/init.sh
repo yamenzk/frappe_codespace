@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 set -e
 
@@ -17,6 +17,16 @@ nvm use 18
 echo "nvm use 18" >> ~/.bashrc
 cd /workspace
 
+# Wait for MariaDB to be ready
+echo "Waiting for MariaDB to be ready..."
+until mysql -h mariadb -u root -p123 -e "SELECT 1" >/dev/null 2>&1
+do
+    echo "MariaDB is unavailable - sleeping"
+    sleep 1
+done
+
+echo "MariaDB is up - executing command"
+
 bench init \
 --ignore-exist \
 --skip-redis-config-generation \
@@ -33,11 +43,16 @@ bench set-redis-socketio-host redis-socketio:6379
 # Remove redis from Procfile
 sed -i '/redis/d' ./Procfile
 
+# Add debug output
+echo "Creating new site..."
+echo "MariaDB connection test:"
+mysql -h mariadb -u root -p123 -e "SELECT VERSION()"
 
 bench new-site dev.localhost \
 --mariadb-root-password 123 \
 --admin-password admin \
---no-mariadb-socket
+--no-mariadb-socket \
+--verbose
 
 bench --site dev.localhost set-config developer_mode 1
 bench --site dev.localhost clear-cache
