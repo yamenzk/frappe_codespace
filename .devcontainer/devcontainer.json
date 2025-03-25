@@ -17,5 +17,14 @@
     "grapecity.gc-excelviewer",
     "mtxr.sqltools",
     "visualstudioexptteam.vscodeintellicode"
-  ]
+  ],
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "yamenzk/*": {
+          "permissions": "write-all"
+        }
+      }
+    }
+  }
 }
